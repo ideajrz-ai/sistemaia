@@ -17,8 +17,9 @@ class Api {
     var session = auth.auth.currentSession;
     if (session == null) throw Exception('Inicia sesión para continuar.');
     if (session.isExpired) session = (await auth.auth.refreshSession()).session;
-    if (session == null)
+    if (session == null) {
       throw Exception('La sesión expiró. Inicia sesión otra vez.');
+    }
     final request = http.Request(
       method,
       Uri.parse('${baseUrl.replaceAll(RegExp(r"/+$"), "")}/api/$path'),
@@ -39,8 +40,9 @@ class Api {
         'El servidor no respondió con datos válidos (${response.statusCode}). Revisa la URL de la API.',
       );
     }
-    if (response.statusCode >= 400)
+    if (response.statusCode >= 400) {
       throw Exception(data['error'] ?? 'Error ${response.statusCode}');
+    }
     return data;
   }
 }

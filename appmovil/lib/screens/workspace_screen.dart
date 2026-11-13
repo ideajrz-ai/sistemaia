@@ -97,9 +97,10 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
     body: FutureBuilder<Map<String, dynamic>>(
       future: profile,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
+        if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -115,11 +116,13 @@ class _WorkspaceScreenState extends State<WorkspaceScreen> {
               ),
             ),
           );
+        }
         final p = snapshot.data?['perfil'] as Map<String, dynamic>?;
-        if (p == null)
+        if (p == null) {
           return const Center(
             child: Text('No se encontró tu perfil. Contacta al administrador.'),
           );
+        }
         final admin = p['rol'] == 'admin';
         final visible = List<String>.from(p['modulos_visibles'] ?? []);
         final modules = <(String, String, IconData, Widget)>[
@@ -317,7 +320,7 @@ class _ResourceScreenState extends State<ResourceScreen> {
       final data = await widget.api.call(
         resource == 'qr' ? 'qr/mios?mios=1' : '$resource?mios=1',
       );
-      if (mounted)
+      if (mounted) {
         setState(
           () => items = List<dynamic>.from(
             data[resource == 'archivos'
@@ -328,6 +331,7 @@ class _ResourceScreenState extends State<ResourceScreen> {
                 [],
           ),
         );
+      }
     } catch (e) {
       if (mounted) setState(() => error = '$e');
     } finally {
@@ -352,8 +356,9 @@ class _ResourceScreenState extends State<ResourceScreen> {
     final selected = await FilePicker.platform.pickFiles();
     if (selected == null) return;
     final file = selected.files.single;
-    if (file.size > 20 * 1024 * 1024)
+    if (file.size > 20 * 1024 * 1024) {
       throw Exception('El tamaño máximo es 20 MB.');
+    }
     final bytes =
         file.bytes ??
         (file.path == null ? null : await File(file.path!).readAsBytes());
@@ -390,10 +395,11 @@ class _ResourceScreenState extends State<ResourceScreen> {
       context,
       MaterialPageRoute(builder: (_) => ScheduleEditor(resource: resource)),
     );
-    if (result != null)
+    if (result != null) {
       await action(() async {
         await widget.api.call(resource, method: 'POST', body: result);
       });
+    }
   }
 
   @override
@@ -580,10 +586,11 @@ class _ResourceScreenState extends State<ResourceScreen> {
                                                 uri,
                                                 mode: LaunchMode
                                                     .externalApplication,
-                                              ))
+                                              )) {
                                             throw Exception(
                                               'No se pudo abrir el archivo.',
                                             );
+                                          }
                                         }),
                                   child: const Text('Abrir archivo'),
                                 ),
@@ -850,8 +857,9 @@ class _ClientsScreenState extends State<ClientsScreen> {
     body: FutureBuilder<Map<String, dynamic>>(
       future: data,
       builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
+        if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
+        }
         if (snapshot.hasError) return Center(child: Text('${snapshot.error}'));
         final clients = snapshot.data!['clientes'] as List;
         return ListView(

@@ -9,7 +9,8 @@ Las geocercas circulares se crean tocando el mapa y se guardan por cuenta en el 
 1. Configura Supabase y la API según el README raíz. Ejecuta el esquema SQL y habilita el bucket `archivos-consultoria` con sus políticas.
 2. Publica la API con HTTPS. La URL debe ser la raíz del servicio, sin `/api`. Un teléfono no puede acceder al `localhost` de tu computadora.
 3. Copia `config/example.json` a `config/local.json`. Rellena `SUPABASE_URL`, `SUPABASE_ANON_KEY` (anon o publishable) y `API_URL`. Este archivo está excluido de Git.
-4. También puedes abrir una compilación sin configuración y capturar estos tres valores en la primera pantalla; se conservarán en el dispositivo.
+4. La configuración pública existente de Supabase se guardó en `config/local.json`; falta indicar la URL HTTPS de la API.
+5. También puedes abrir una compilación sin configuración y capturar estos tres valores en la primera pantalla; se conservarán en el dispositivo.
 
 Nunca incluyas la clave `service_role`, contraseñas SMTP ni secretos del backend en una APK. Los archivos `.env` del servidor no se empaquetan. Las conexiones móviles requieren HTTPS y las copias de seguridad de Android están desactivadas.
 

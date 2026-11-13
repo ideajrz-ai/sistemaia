@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'workspace_screen.dart';
@@ -29,11 +30,12 @@ class _GeocercasScreenState extends State<GeocercasScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final data = jsonDecode(prefs.getString(storageKey) ?? '[]') as List;
-      if (mounted)
+      if (mounted) {
         setState(() {
           fences = data.map((e) => Map<String, dynamic>.from(e)).toList();
           ready = true;
         });
+      }
     } catch (e) {
       if (mounted) {
         setState(() => ready = true);
@@ -45,8 +47,9 @@ class _GeocercasScreenState extends State<GeocercasScreen> {
   Future<void> save(List<Map<String, dynamic>> values) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      if (!await prefs.setString(storageKey, jsonEncode(values)))
+      if (!await prefs.setString(storageKey, jsonEncode(values))) {
         throw Exception('No se pudo guardar');
+      }
       if (mounted) setState(() => fences = values);
     } catch (e) {
       if (mounted) notify(context, e);
@@ -99,7 +102,7 @@ class _GeocercasScreenState extends State<GeocercasScreen> {
           ),
           FilledButton(
             onPressed: () {
-              if (form.currentState!.validate())
+              if (form.currentState!.validate()) {
                 Navigator.pop(c, <String, dynamic>{
                   'id': DateTime.now().microsecondsSinceEpoch.toString(),
                   'nombre': name.text.trim(),
@@ -107,6 +110,7 @@ class _GeocercasScreenState extends State<GeocercasScreen> {
                   'lng': center.longitude,
                   'radio': double.parse(radius.text),
                 });
+              }
             },
             child: const Text('Guardar'),
           ),
@@ -180,9 +184,16 @@ class _GeocercasScreenState extends State<GeocercasScreen> {
                           ),
                         ],
                       ),
-                    const RichAttributionWidget(
+                    RichAttributionWidget(
                       attributions: [
-                        TextSourceAttribution('OpenStreetMap contributors'),
+                        TextSourceAttribution(
+                          'OpenStreetMap contributors',
+                          onTap: () => launchUrl(
+                            Uri.parse(
+                              'https://www.openstreetmap.org/copyright',
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ],

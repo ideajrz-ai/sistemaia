@@ -66,6 +66,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     title: 'SistemaIA',
     debugShowCheckedModeBanner: false,
+    locale: const Locale('es'),
+    supportedLocales: const [Locale('es')],
+    localizationsDelegates: GlobalMaterialLocalizations.delegates,
     theme: ThemeData(
       colorScheme: ColorScheme.fromSeed(
         seedColor: orange,
@@ -135,19 +138,37 @@ class _BootstrapState extends State<Bootstrap> {
       await prefs.setString('api_url', apiUrl.text.trim());
       if (mounted) setState(() => ready = true);
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(
           () => error =
               'No se pudo iniciar la conexión. Revisa la configuración.',
         );
+      }
     } finally {
       if (mounted) setState(() => busy = false);
     }
   }
 
+  Future<void> resetConnection() async {
+    await Supabase.instance.client.auth.signOut();
+    await Supabase.instance.dispose();
+    final prefs = await SharedPreferences.getInstance();
+    for (final name in ['supabase_url', 'supabase_key', 'api_url']) {
+      await prefs.remove(name);
+    }
+    if (mounted) {
+      setState(() {
+        ready = false;
+        error = null;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (ready) return AuthGate(api: Api(apiUrl.text.trim()));
+    if (ready) {
+      return AuthGate(api: Api(apiUrl.text.trim()), onReset: resetConnection);
+    }
     return Scaffold(
       appBar: AppBar(title: const Text('Conectar SistemaIA')),
       body: Center(
@@ -202,23 +223,25 @@ class _BootstrapState extends State<Bootstrap> {
 }
 
 class AuthGate extends StatelessWidget {
-  const AuthGate({super.key, required this.api});
+  const AuthGate({super.key, required this.api, required this.onReset});
   final Api api;
+  final Future<void> Function() onReset;
   @override
   Widget build(BuildContext context) => StreamBuilder<AuthState>(
     stream: api.auth.auth.onAuthStateChange,
     builder: (context, snapshot) {
       final user = api.auth.auth.currentUser;
       return user == null
-          ? LoginScreen(api: api)
+          ? LoginScreen(api: api, onReset: onReset)
           : WorkspaceScreen(key: ValueKey(user.id), api: api);
     },
   );
 }
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.api});
+  const LoginScreen({super.key, required this.api, required this.onReset});
   final Api api;
+  final Future<void> Function() onReset;
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -239,8 +262,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> submit({bool reset = false}) async {
-    if (reset ? !email.text.contains('@') : !form.currentState!.validate())
+    if (reset ? !email.text.contains('@') : !form.currentState!.validate()) {
       return;
+    }
     setState(() {
       busy = true;
       message = null;
@@ -261,7 +285,7 @@ class _LoginScreenState extends State<LoginScreen> {
           password: password.text,
         );
       }
-      if (mounted)
+      if (mounted) {
         setState(
           () => message = reset
               ? 'Revisa tu correo para recuperar el acceso.'
@@ -269,13 +293,15 @@ class _LoginScreenState extends State<LoginScreen> {
               ? 'Cuenta creada. Revisa tu correo si se solicita confirmación.'
               : null,
         );
+      }
     } on AuthException catch (e) {
       if (mounted) setState(() => message = e.message);
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(
           () => message = 'No se pudo conectar. Revisa tu conexión a internet.',
         );
+      }
     } finally {
       if (mounted) setState(() => busy = false);
     }
@@ -367,6 +393,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextButton(
                   onPressed: busy ? null : () => submit(reset: true),
                   child: const Text('Recuperar contraseña'),
+                ),
+                TextButton(
+                  onPressed: busy
+                      ? null
+                      : () async {
+                          setState(() => busy = true);
+                          try {
+                            await widget.onReset();
+                          } catch (_) {
+                            if (mounted) {
+                              setState(() {
+                                busy = false;
+                                message = 'No se pudo cambiar la conexión. Reintenta.';
+                              });
+                            }
+                          }
+                        },
+                  child: const Text('Cambiar conexión'),
                 ),
               ],
             ),

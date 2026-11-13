@@ -32,11 +32,12 @@ class _SurveyScreenState extends State<SurveyScreen> {
         widget.api.call('preguntas?activas=1'),
         widget.api.call('encuestas'),
       ]);
-      if (mounted)
+      if (mounted) {
         setState(() {
           questions = data[0]['preguntas'];
           history = data[1]['encuestas'];
         });
+      }
     } catch (e) {
       if (mounted) setState(() => error = '$e');
     } finally {
@@ -67,11 +68,12 @@ class _SurveyScreenState extends State<SurveyScreen> {
           ],
         },
       );
-      if (mounted)
+      if (mounted) {
         setState(() {
           result = data['encuesta'];
           history.insert(0, result);
         });
+      }
     } catch (e) {
       if (mounted) notify(context, e);
     } finally {
