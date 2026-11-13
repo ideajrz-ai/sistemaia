@@ -1,143 +1,139 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'screens/home_screen.dart';
-import 'screens/menus_screen.dart';
-import 'screens/forms_screen.dart';
-import 'screens/ocr_screen.dart';
-import 'screens/upload_screen.dart';
-import 'screens/encuesta_screen.dart';
-import 'screens/sesiones_screen.dart';
-import 'screens/archivos_screen.dart';
-import 'screens/citas_screen.dart';
-import 'screens/qr_screen.dart';
-import 'screens/geocercas_screen.dart';
-import 'screens/dashboard_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'services/api.dart';
+import 'screens/workspace_screen.dart';
 
-void main() {
-  runApp(const MyApp());
+const orange = Color(0xfff97316);
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final config = AppConfig(
+    const String.fromEnvironment('SUPABASE_URL', defaultValue: '') .isNotEmpty ? const String.fromEnvironment('SUPABASE_URL') : prefs.getString('supabase_url') ?? '',
+    const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '').isNotEmpty ? const String.fromEnvironment('SUPABASE_ANON_KEY') : prefs.getString('supabase_key') ?? '',
+    const String.fromEnvironment('API_URL', defaultValue: '').isNotEmpty ? const String.fromEnvironment('API_URL') : prefs.getString('api_url') ?? '',
+  );
+  runApp(MyApp(config: config));
 }
 
-final GoRouter _router = GoRouter(
-  routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const HomeScreen(),
-    ),
-    GoRoute(
-      path: '/menus',
-      builder: (context, state) => const MenusScreen(),
-    ),
-    GoRoute(
-      path: '/encuesta',
-      builder: (context, state) => const EncuestaScreen(),
-    ),
-    GoRoute(
-      path: '/sesiones',
-      builder: (context, state) => const SesionesScreen(),
-    ),
-    GoRoute(
-      path: '/archivos',
-      builder: (context, state) => const ArchivosScreen(),
-    ),
-    GoRoute(
-      path: '/citas',
-      builder: (context, state) => const CitasScreen(),
-    ),
-    GoRoute(
-      path: '/qr',
-      builder: (context, state) => const QRScreen(),
-    ),
-    GoRoute(
-      path: '/geocercas',
-      builder: (context, state) => const GeocercasScreen(),
-    ),
-    GoRoute(
-      path: '/dashboard',
-      builder: (context, state) => const DashboardScreen(),
-    ),
-    GoRoute(
-      path: '/forms',
-      builder: (context, state) => const FormsScreen(),
-    ),
-    GoRoute(
-      path: '/ocr',
-      builder: (context, state) => const OCRScreen(),
-    ),
-    GoRoute(
-      path: '/upload',
-      builder: (context, state) => const UploadScreen(),
-    ),
-  ],
-);
+class AppConfig {
+  const AppConfig(this.url, this.key, this.apiUrl);
+  final String url, key, apiUrl;
+  bool get valid => validUrl(url) && key.isNotEmpty && validUrl(apiUrl);
+  static bool validUrl(String value) {
+    final uri = Uri.tryParse(value);
+    return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty && uri.userInfo.isEmpty && uri.query.isEmpty && uri.fragment.isEmpty;
+  }
+}
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, this.config = const AppConfig('', '', '')});
+  final AppConfig config;
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+    title: 'SistemaIA', debugShowCheckedModeBanner: false,
+    theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: orange, brightness: Brightness.dark), scaffoldBackgroundColor: const Color(0xff0b0b0c), useMaterial3: true,
+      inputDecorationTheme: const InputDecorationTheme(border: OutlineInputBorder()),
+      appBarTheme: const AppBarTheme(backgroundColor: Color(0xff17181a))),
+    home: Bootstrap(config: config),
+  );
+}
 
+class Bootstrap extends StatefulWidget {
+  const Bootstrap({super.key, required this.config});
+  final AppConfig config;
+  @override
+  State<Bootstrap> createState() => _BootstrapState();
+}
+class _BootstrapState extends State<Bootstrap> {
+  bool ready = false, busy = false;
+  String? error;
+  late final url = TextEditingController(text: widget.config.url);
+  late final key = TextEditingController(text: widget.config.key);
+  late final apiUrl = TextEditingController(text: widget.config.apiUrl);
+  @override
+  void initState() { super.initState(); if (widget.config.valid) unawaited(connect()); }
+  @override
+  void dispose() { url.dispose(); key.dispose(); apiUrl.dispose(); super.dispose(); }
+  Future<void> connect() async {
+    if (!AppConfig(url.text.trim(), key.text.trim(), apiUrl.text.trim()).valid) {
+      setState(() => error = 'Ingresa URLs HTTPS y la clave pública de Supabase.'); return;
+    }
+    setState(() { busy = true; error = null; });
+    try {
+      await Supabase.initialize(url: url.text.trim(), anonKey: key.text.trim());
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('supabase_url', url.text.trim());
+      await prefs.setString('supabase_key', key.text.trim());
+      await prefs.setString('api_url', apiUrl.text.trim());
+      if (mounted) setState(() => ready = true);
+    } catch (_) { if (mounted) setState(() => error = 'No se pudo iniciar la conexión. Revisa la configuración.'); }
+    finally { if (mounted) setState(() => busy = false); }
+  }
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'SistemaIA',
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xfff97316),
-          secondary: Color(0xfff97316),
-          surface: Color(0xff17181a),
-          background: Color(0xff0b0b0c),
-          error: Color(0xfff87171),
-        ),
-        scaffoldBackgroundColor: const Color(0xff0b0b0c),
-        cardColor: const Color(0xff17181a),
-        dividerColor: const Color(0xff2e2f33),
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Color(0xfff5f5f4)),
-          bodyMedium: TextStyle(color: Color(0xfff5f5f4)),
-          bodySmall: TextStyle(color: Color(0xff9b9b9b)),
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xff17181a),
-          foregroundColor: Color(0xfff5f5f4),
-          elevation: 0,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: const Color(0xff101013),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xff2e2f33)),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xff2e2f33)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xfff97316)),
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xfff97316),
-            foregroundColor: const Color(0xff0b0b0c),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xfff97316),
-            side: const BorderSide(color: Color(0xfff97316)),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        ),
-        useMaterial3: true,
-      ),
-      routerConfig: _router,
-    );
+    if (ready) return AuthGate(api: Api(apiUrl.text.trim()));
+    return Scaffold(appBar: AppBar(title: const Text('Conectar SistemaIA')), body: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(24), child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 460), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      const Icon(Icons.business, size: 64, color: orange), const SizedBox(height: 16),
+      const Text('Configura la conexión de tu organización. Usa únicamente la clave pública (anon o publishable).'), const SizedBox(height: 20),
+      TextField(controller: url, decoration: const InputDecoration(labelText: 'URL HTTPS de Supabase')), const SizedBox(height: 12),
+      TextField(controller: key, obscureText: true, decoration: const InputDecoration(labelText: 'Clave pública de Supabase')), const SizedBox(height: 12),
+      TextField(controller: apiUrl, decoration: const InputDecoration(labelText: 'URL HTTPS de la API (sin /api)')), const SizedBox(height: 12),
+      if (error != null) Text(error!, style: const TextStyle(color: Colors.redAccent)),
+      FilledButton(onPressed: busy ? null : connect, child: Text(busy ? 'Conectando…' : 'Conectar')),
+    ])))));
   }
+}
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key, required this.api});
+  final Api api;
+  @override
+  Widget build(BuildContext context) => StreamBuilder<AuthState>(stream: api.auth.auth.onAuthStateChange, builder: (context, snapshot) {
+    final user = api.auth.auth.currentUser;
+    return user == null ? LoginScreen(api: api) : WorkspaceScreen(key: ValueKey(user.id), api: api);
+  });
+}
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key, required this.api});
+  final Api api;
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+class _LoginScreenState extends State<LoginScreen> {
+  final form = GlobalKey<FormState>();
+  final email = TextEditingController(), password = TextEditingController(), name = TextEditingController();
+  bool registering = false, busy = false;
+  String? message;
+  @override
+  void dispose() { email.dispose(); password.dispose(); name.dispose(); super.dispose(); }
+  Future<void> submit({bool reset = false}) async {
+    if (reset ? !email.text.contains('@') : !form.currentState!.validate()) return;
+    setState(() { busy = true; message = null; });
+    try {
+      final auth = widget.api.auth.auth;
+      if (reset) { await auth.resetPasswordForEmail(email.text.trim()); }
+      else if (registering) {
+        await auth.signUp(email: email.text.trim(), password: password.text, data: {'nombre': name.text.trim()});
+      } else { await auth.signInWithPassword(email: email.text.trim(), password: password.text); }
+      if (mounted) setState(() => message = reset ? 'Revisa tu correo para recuperar el acceso.' : registering ? 'Cuenta creada. Revisa tu correo si se solicita confirmación.' : null);
+    } on AuthException catch (e) { if (mounted) setState(() => message = e.message); }
+    catch (_) { if (mounted) setState(() => message = 'No se pudo conectar. Revisa tu conexión a internet.'); }
+    finally { if (mounted) setState(() => busy = false); }
+  }
+  @override
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: const Text('SistemaIA · Consultoría')), body: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(24), child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 420), child: Form(key: form, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    const Icon(Icons.business, size: 72, color: orange), const SizedBox(height: 24),
+    Text(registering ? 'Crear cuenta' : 'Iniciar sesión', style: Theme.of(context).textTheme.headlineMedium), const SizedBox(height: 24),
+    if (registering) ...[TextFormField(controller: name, decoration: const InputDecoration(labelText: 'Nombre'), validator: (v) => v!.trim().isEmpty ? 'Ingresa tu nombre' : null), const SizedBox(height: 16)],
+    TextFormField(controller: email, keyboardType: TextInputType.emailAddress, autofillHints: const [AutofillHints.email], decoration: const InputDecoration(labelText: 'Correo electrónico'), validator: (v) => v != null && RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v.trim()) ? null : 'Ingresa un correo válido'), const SizedBox(height: 16),
+    TextFormField(controller: password, obscureText: true, autofillHints: [registering ? AutofillHints.newPassword : AutofillHints.password], decoration: const InputDecoration(labelText: 'Contraseña'), validator: (v) => (v?.length ?? 0) < 6 ? 'Usa al menos 6 caracteres' : null), const SizedBox(height: 16),
+    if (message != null) Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(message!)),
+    FilledButton(onPressed: busy ? null : submit, child: Text(busy ? 'Conectando…' : registering ? 'Registrarme' : 'Entrar')),
+    TextButton(onPressed: busy ? null : () => setState(() { registering = !registering; message = null; }), child: Text(registering ? 'Ya tengo cuenta' : 'Crear una cuenta')),
+    TextButton(onPressed: busy ? null : () => submit(reset: true), child: const Text('Recuperar contraseña')),
+  ]))))));
 }

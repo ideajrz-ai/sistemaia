@@ -77,7 +77,7 @@
     <h2 style="margin-top:1rem;">Perfil (tabla perfiles)</h2>
     {#if perfil}
       <p class="exito">✓ Perfil encontrado en la base de datos</p>
-      <table style="width:100%; font-size:.9rem;"><tbody></tbody>
+      <table style="width:100%; font-size:.9rem;"><tbody>
         <tr><td class="tenue">Nombre</td><td>{perfil.nombre || '—'}</td></tr>
         <tr><td class="tenue">Telefono</td><td>{perfil.telefono || '—'}</td></tr>
         <tr><td class="tenue">Rol</td><td>{perfil.rol}</td></tr>
