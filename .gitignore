@@ -1,0 +1,22 @@
+# Dependencias
+node_modules/
+
+# Builds
+apps/web/.svelte-kit/
+apps/web/build/
+apps/web/.vercel/
+apps/api/.vercel/
+
+# Entorno — NUNCA commitear
+.env
+.env.local
+.env.*.local
+apps/web/.env
+apps/api/.env
+
+# SO / editor
+.DS_Store
+*.log
+
+# Cache local de npm (por permisos del cache global)
+.npm-cache/

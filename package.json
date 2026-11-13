@@ -1,0 +1,14 @@
+{
+  "name": "sistema-ia-consultoria",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Sistema de administracion para consultoria: diagnostico, clientes, sesiones, citas y archivos",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:api": "npm run dev --workspace=apps/api",
+    "build": "npm run build --workspace=apps/api && npm run build --workspace=apps/web"
+  }
+}
