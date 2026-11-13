@@ -1,7 +1,6 @@
 <script>
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { API_URL } from '$lib/auth.js';
 
   let estado = 'verificando'; // verificando | valido | invalido
   let nombre = '';
@@ -15,7 +14,10 @@
       return;
     }
     try {
-      const res = await fetch(`${API_URL}/api/qr/validar?token=${encodeURIComponent(token)}`);
+      // In Vercel services mode, use relative path; in dev, use absolute URL
+      const apiUrl = import.meta.env.PUBLIC_API_URL || '';
+      const url = apiUrl ? `${apiUrl}/api/qr/validar?token=${encodeURIComponent(token)}` : `/api/qr/validar?token=${encodeURIComponent(token)}`;
+      const res = await fetch(url);
       const data = await res.json();
       if (data.valido) {
         estado = 'valido';

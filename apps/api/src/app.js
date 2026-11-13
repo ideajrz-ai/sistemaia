@@ -24,7 +24,9 @@ app.use(cors({
     if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
       return cb(null, true);
     }
-    const allowed = (process.env.APP_URL || 'http://localhost:5173')
+    // En Vercel services mode, WEB_URL se inyecta via binding al servicio web
+    // En desarrollo local, usa APP_URL de .env
+    const allowed = (process.env.WEB_URL || process.env.APP_URL || 'http://localhost:5173')
       .split(',').map((s) => s.trim());
     cb(null, allowed.includes(origin));
   },

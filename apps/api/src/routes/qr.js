@@ -5,7 +5,9 @@ import { supabaseAdmin } from '../lib/supabase.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
-const APP_URL = process.env.APP_URL || 'http://localhost:5173';
+// In Vercel services mode, WEB_URL is injected via binding to the web service
+// In local development, use APP_URL from .env
+const WEB_URL = process.env.WEB_URL || process.env.APP_URL || 'http://localhost:5173';
 
 function hashToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -42,7 +44,7 @@ router.post('/', requireAuth, async (req, res) => {
     .single();
   if (error) return res.status(500).json({ error: error.message });
 
-  const url = `${APP_URL}/acceso?token=${token}`;
+  const url = `${WEB_URL}/acceso?token=${token}`;
   const qr = await QRCode.toDataURL(url, { margin: 1, width: 320 });
   res.status(201).json({
     qr_id: data.id,
