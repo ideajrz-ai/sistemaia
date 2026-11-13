@@ -7,10 +7,11 @@ Las geocercas circulares se crean tocando el mapa y se guardan por cuenta en el 
 ## Configuración
 
 1. Configura Supabase y la API según el README raíz. Ejecuta el esquema SQL y habilita el bucket `archivos-consultoria` con sus políticas.
-2. Publica la API con HTTPS. La URL debe ser la raíz del servicio, sin `/api`. Un teléfono no puede acceder al `localhost` de tu computadora.
-3. Copia `config/example.json` a `config/local.json`. Rellena `SUPABASE_URL`, `SUPABASE_ANON_KEY` (anon o publishable) y `API_URL`. Este archivo está excluido de Git.
-4. La configuración pública existente de Supabase se guardó en `config/local.json`; falta indicar la URL HTTPS de la API.
-5. También puedes abrir una compilación sin configuración y capturar estos tres valores en la primera pantalla; se conservarán en el dispositivo.
+2. En Supabase → Authentication → URL Configuration, agrega `mx.sistemaia.consultoria://auth-callback` a las Redirect URLs para confirmar correos y recuperar contraseñas desde Android.
+3. Publica la API con HTTPS. La URL debe ser la raíz del servicio, sin `/api`. Un teléfono no puede acceder al `localhost` de tu computadora.
+4. Copia `config/example.json` a `config/local.json`. Rellena `SUPABASE_URL`, `SUPABASE_ANON_KEY` (anon o publishable) y `API_URL`. Este archivo está excluido de Git.
+5. La configuración pública existente de Supabase se guardó en `config/local.json`; falta indicar la URL HTTPS de la API.
+6. También puedes abrir una compilación sin configuración y capturar estos tres valores en la primera pantalla; se conservarán en el dispositivo.
 
 Nunca incluyas la clave `service_role`, contraseñas SMTP ni secretos del backend en una APK. Los archivos `.env` del servidor no se empaquetan. Las conexiones móviles requieren HTTPS y las copias de seguridad de Android están desactivadas.
 
@@ -30,6 +31,8 @@ flutter run --dart-define-from-file=config/local.json
 ```sh
 flutter build apk --release --dart-define-from-file=config/local.json
 ```
+
+También puedes ejecutar `./tool/build_apk.sh`: carga `config/local.json` si existe y usa el Java local de `.tools/java17` si está disponible. Si Flutter no está en PATH, indica `FLUTTER_BIN=/ruta/a/flutter/bin/flutter`.
 
 Salida: `build/app/outputs/flutter-apk/app-release.apk`. Sin el argumento de configuración, la app solicita los datos al abrirse.
 

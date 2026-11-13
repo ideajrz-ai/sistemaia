@@ -9,6 +9,7 @@ import 'services/api.dart';
 import 'screens/workspace_screen.dart';
 
 const orange = Color(0xfff97316);
+const authCallback = 'mx.sistemaia.consultoria://auth-callback';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -150,7 +151,9 @@ class _BootstrapState extends State<Bootstrap> {
   }
 
   Future<void> resetConnection() async {
-    await Supabase.instance.client.auth.signOut();
+    if (Supabase.instance.client.auth.currentSession != null) {
+      await Supabase.instance.client.auth.signOut();
+    }
     await Supabase.instance.dispose();
     final prefs = await SharedPreferences.getInstance();
     for (final name in ['supabase_url', 'supabase_key', 'api_url']) {
@@ -231,6 +234,10 @@ class AuthGate extends StatelessWidget {
     stream: api.auth.auth.onAuthStateChange,
     builder: (context, snapshot) {
       final user = api.auth.auth.currentUser;
+      if (user != null &&
+          snapshot.data?.event == AuthChangeEvent.passwordRecovery) {
+        return PasswordScreen(api: api);
+      }
       return user == null
           ? LoginScreen(api: api, onReset: onReset)
           : WorkspaceScreen(key: ValueKey(user.id), api: api);
@@ -272,12 +279,16 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final auth = widget.api.auth.auth;
       if (reset) {
-        await auth.resetPasswordForEmail(email.text.trim());
+        await auth.resetPasswordForEmail(
+          email.text.trim(),
+          redirectTo: authCallback,
+        );
       } else if (registering) {
         await auth.signUp(
           email: email.text.trim(),
           password: password.text,
           data: {'nombre': name.text.trim()},
+          emailRedirectTo: authCallback,
         );
       } else {
         await auth.signInWithPassword(

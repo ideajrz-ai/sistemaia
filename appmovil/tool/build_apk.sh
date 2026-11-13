@@ -10,8 +10,8 @@ if [[ -x "$project_dir/.tools/java17/Contents/Home/bin/java" ]]; then
 fi
 
 cd "$app_dir"
-config_args=()
 if [[ -f config/local.json ]]; then
-  config_args+=(--dart-define-from-file=config/local.json)
+  exec "$flutter_bin" build apk --release --dart-define-from-file=config/local.json "$@"
+else
+  exec "$flutter_bin" build apk --release "$@"
 fi
-"$flutter_bin" build apk --release "${config_args[@]}" "$@"

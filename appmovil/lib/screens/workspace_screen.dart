@@ -286,6 +286,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
           child: Text(busy ? 'Guardando…' : 'Guardar cambios'),
         ),
+        TextButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (_) => PasswordScreen(api: widget.api),
+            ),
+          ),
+          child: const Text('Cambiar contraseña'),
+        ),
       ],
     ),
   );
@@ -428,7 +437,7 @@ class _ResourceScreenState extends State<ResourceScreen> {
           )
         : FloatingActionButton(
             tooltip: resource == 'qr'
-                ? 'Generar QR de hoy'
+                ? 'Generar QR de acceso'
                 : resource == 'archivos'
                 ? 'Subir archivo'
                 : 'Crear registro',
@@ -440,12 +449,8 @@ class _ResourceScreenState extends State<ResourceScreen> {
                   final value = await widget.api.call(
                     'qr',
                     method: 'POST',
-                    body: {
-                      'fecha': DateTime.now().toIso8601String().substring(
-                        0,
-                        10,
-                      ),
-                    },
+                    // El servidor determina la fecha de validez del acceso.
+                    body: {},
                   );
                   if (mounted) setState(() => qr = value);
                 });
@@ -880,6 +885,80 @@ class _ClientsScreenState extends State<ClientsScreen> {
           ],
         );
       },
+    ),
+  );
+}
+
+class PasswordScreen extends StatefulWidget {
+  const PasswordScreen({super.key, required this.api});
+  final Api api;
+  @override
+  State<PasswordScreen> createState() => _PasswordScreenState();
+}
+
+class _PasswordScreenState extends State<PasswordScreen> {
+  final form = GlobalKey<FormState>();
+  final password = TextEditingController(),
+      confirmation = TextEditingController();
+  bool busy = false;
+  @override
+  void dispose() {
+    password.dispose();
+    confirmation.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Cambiar contraseña')),
+    body: Form(
+      key: form,
+      child: ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          TextFormField(
+            controller: password,
+            obscureText: true,
+            autofillHints: const [AutofillHints.newPassword],
+            decoration: const InputDecoration(labelText: 'Nueva contraseña'),
+            validator: (v) =>
+                (v?.length ?? 0) < 8 ? 'Usa al menos 8 caracteres' : null,
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: confirmation,
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: 'Confirmar contraseña',
+            ),
+            validator: (v) =>
+                v != password.text ? 'Las contraseñas no coinciden' : null,
+          ),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: busy
+                ? null
+                : () async {
+                    if (!form.currentState!.validate()) return;
+                    setState(() => busy = true);
+                    try {
+                      await widget.api.auth.auth.updateUser(
+                        UserAttributes(password: password.text),
+                      );
+                      if (context.mounted) {
+                        notify(context, 'Contraseña actualizada');
+                        if (Navigator.canPop(context)) Navigator.pop(context);
+                      }
+                    } catch (e) {
+                      if (context.mounted) notify(context, e);
+                    } finally {
+                      if (mounted) setState(() => busy = false);
+                    }
+                  },
+            child: Text(busy ? 'Guardando…' : 'Guardar contraseña'),
+          ),
+        ],
+      ),
     ),
   );
 }

@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:appmovil/main.dart';
+import 'package:appmovil/services/api.dart';
 import 'package:appmovil/screens/workspace_screen.dart';
 
 void main() {
@@ -41,5 +42,19 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Guardar'));
     await tester.pump();
     expect(find.text('Selecciona fecha y hora.'), findsOneWidget);
+  });
+  testWidgets('Rechaza contraseñas cortas y confirmaciones diferentes', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(home: PasswordScreen(api: Api('https://example.com'))),
+    );
+    final fields = find.byType(TextFormField);
+    await tester.enterText(fields.first, 'corta');
+    await tester.enterText(fields.last, 'diferente');
+    await tester.tap(find.widgetWithText(FilledButton, 'Guardar contraseña'));
+    await tester.pump();
+    expect(find.text('Usa al menos 8 caracteres'), findsOneWidget);
+    expect(find.text('Las contraseñas no coinciden'), findsOneWidget);
   });
 }
