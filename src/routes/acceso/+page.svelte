@@ -14,10 +14,7 @@
       return;
     }
     try {
-      // In Vercel services mode, use relative path; in dev, use absolute URL
-      const apiUrl = import.meta.env.PUBLIC_API_URL || '';
-      const url = apiUrl ? `${apiUrl}/api/qr/validar?token=${encodeURIComponent(token)}` : `/api/qr/validar?token=${encodeURIComponent(token)}`;
-      const res = await fetch(url);
+      const res = await fetch(`/api/qr/validar?token=${encodeURIComponent(token)}`);
       const data = await res.json();
       if (data.valido) {
         estado = 'valido';

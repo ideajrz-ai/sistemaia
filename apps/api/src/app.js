@@ -12,6 +12,7 @@ import citasRouter from './routes/citas.js';
 import archivosRouter from './routes/archivos.js';
 import qrRouter from './routes/qr.js';
 import adminRouter from './routes/admin.js';
+import { allowedOrigins } from './lib/deployment.js';
 
 const app = express();
 
@@ -24,10 +25,8 @@ app.use(cors({
     if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
       return cb(null, true);
     }
-    // En Vercel services mode, WEB_URL se inyecta via binding al servicio web
-    // En desarrollo local, usa APP_URL de .env
-    const allowed = (process.env.WEB_URL || process.env.APP_URL || 'http://localhost:5173')
-      .split(',').map((s) => s.trim());
+    // CORS checks browser origins, not internal binding URLs.
+    const allowed = allowedOrigins();
     cb(null, allowed.includes(origin));
   },
   credentials: true,

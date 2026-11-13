@@ -1,16 +1,11 @@
 import { supabase } from './supabase.js';
 import { goto } from '$app/navigation';
 
-// In Vercel services mode, API routes are served under /api/* via rewrites
-// In local development, use PUBLIC_API_URL from .env
-const API_URL = import.meta.env.PUBLIC_API_URL || '';
-
 // Llama al backend Node con el JWT de Supabase del usuario actual.
 export async function apiFetch(path, options = {}) {
   const { data: { session } } = await supabase.auth.getSession();
-  // Use absolute URL in dev, relative path in production (services mode)
-  const url = API_URL ? `${API_URL}${path}` : path;
-  const res = await fetch(url, {
+  // Public /api routes share the web origin; private bindings never enter the browser.
+  const res = await fetch(path, {
     ...options,
     headers: {
       'Content-Type': 'application/json',

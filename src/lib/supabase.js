@@ -4,7 +4,7 @@ const url = import.meta.env.PUBLIC_SUPABASE_URL;
 const anonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 if (!url || !anonKey) {
-  console.warn('Faltan PUBLIC_SUPABASE_URL / PUBLIC_SUPABASE_ANON_KEY en apps/web/.env');
+  console.warn('Faltan PUBLIC_SUPABASE_URL / PUBLIC_SUPABASE_ANON_KEY en .env');
 }
 
 // Cliente Supabase del lado del cliente (usa la anon key, segura para el navegador)
