@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
@@ -362,16 +361,15 @@ class _ResourceScreenState extends State<ResourceScreen> {
   }
 
   Future<void> upload() async {
-    final selected = await FilePicker.pickFiles();
-    if (selected.isEmpty) return;
-    final file = selected.single;
-    if (file.size > 20 * 1024 * 1024) {
+    final file = await FilePicker.pickFile();
+    if (file == null) return;
+    final size = await file.length();
+    if (size == null) throw Exception('No se pudo leer el tamaño del archivo.');
+    if (size > 20 * 1024 * 1024) throw Exception('El tamaño máximo es 20 MB.');
+    final bytes = await file.readAsBytes();
+    if (bytes.length > 20 * 1024 * 1024) {
       throw Exception('El tamaño máximo es 20 MB.');
     }
-    final bytes =
-        file.bytes ??
-        (file.path == null ? null : await File(file.path!).readAsBytes());
-    if (bytes == null) throw Exception('No se pudo leer el archivo.');
     final storage = widget.api.auth.storage.from('archivos-consultoria');
     final mime = lookupMimeType(file.name) ?? 'application/octet-stream';
     final path =
