@@ -5,8 +5,8 @@ app_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 project_dir="$(dirname "$app_dir")"
 flutter_bin="${FLUTTER_BIN:-flutter}"
 
-if [[ -x "$project_dir/.tools/java17/Contents/Home/bin/java" ]]; then
-  export JAVA_HOME="$project_dir/.tools/java17/Contents/Home"
+if [[ -x "$project_dir/.tools/java21/Contents/Home/bin/java" ]]; then
+  export JAVA_HOME="$project_dir/.tools/java21/Contents/Home"
 fi
 
 cd "$app_dir"

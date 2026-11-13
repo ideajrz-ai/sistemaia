@@ -19,7 +19,7 @@ Nunca incluyas la clave `service_role`, contraseñas SMTP ni secretos del backen
 
 ## Verificar y ejecutar
 
-Requiere Flutter 3.50/Dart 3.14, JDK 17 y Android SDK 36 (plataforma, platform-tools y build-tools). Android mínimo: API 23 o el mínimo superior que requiera Flutter.
+Requiere Flutter 3.50/Dart 3.14, JDK 21 y Android SDK 36 (plataforma, platform-tools y build-tools). Android mínimo: API 23 o el mínimo superior que requiera Flutter.
 
 ```sh
 flutter pub get
@@ -34,7 +34,7 @@ flutter run --dart-define-from-file=config/local.json
 flutter build apk --release --dart-define-from-file=config/local.json
 ```
 
-También puedes ejecutar `./tool/build_apk.sh`: carga `config/local.json` si existe y usa el Java local de `.tools/java17` si está disponible. Si Flutter no está en PATH, indica `FLUTTER_BIN=/ruta/a/flutter/bin/flutter`.
+También puedes ejecutar `./tool/build_apk.sh`: carga `config/local.json` si existe y usa el Java local de `.tools/java21` si está disponible. Si Flutter no está en PATH, indica `FLUTTER_BIN=/ruta/a/flutter/bin/flutter`.
 
 Salida: `build/app/outputs/flutter-apk/app-release.apk`. Sin el argumento de configuración, la app solicita los datos al abrirse.
 
