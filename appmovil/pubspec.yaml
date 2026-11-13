@@ -9,7 +9,7 @@ dependencies:
     sdk: flutter
   google_mlkit_text_recognition: ^0.12.0
   image_picker: ^1.0.7
-  file_picker: ^8.0.5
+  file_picker: ^13.3.3
   http: ^1.2.0
   supabase_flutter: ^2.18.3
   url_launcher: ^6.3.0

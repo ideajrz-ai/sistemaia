@@ -2,6 +2,8 @@
 
 Aplicación Flutter conectada a la API Express y Supabase del monorepo. Incluye registro e inicio de sesión, recuperación por correo, perfil editable, encuesta con diagnóstico e historial, sesiones, citas con recordatorios del servidor, carga y apertura de archivos, QR diario, OCR por cámara/galería y administración de permisos de clientes.
 
+El OCR incluye el modelo latino (español y otros idiomas con alfabeto latino). Los modelos de otros alfabetos son opcionales y no están empaquetados.
+
 Las geocercas circulares se crean tocando el mapa y se guardan por cuenta en el dispositivo. No se sincronizan con las geocercas del navegador ni ejecutan vigilancia de ubicación en segundo plano. Los mapas usan OpenStreetMap y requieren internet.
 
 ## Configuración

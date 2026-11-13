@@ -18,7 +18,7 @@ class _OCRScreenState extends State<OCRScreen> {
   String _recognizedText = '';
   bool _isProcessing = false;
 
-  final textRecognizer = TextRecognizer();
+  final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
 
   @override
   void dispose() {

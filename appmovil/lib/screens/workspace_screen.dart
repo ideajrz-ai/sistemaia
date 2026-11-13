@@ -362,9 +362,9 @@ class _ResourceScreenState extends State<ResourceScreen> {
   }
 
   Future<void> upload() async {
-    final selected = await FilePicker.platform.pickFiles();
-    if (selected == null) return;
-    final file = selected.files.single;
+    final selected = await FilePicker.pickFiles();
+    if (selected.isEmpty) return;
+    final file = selected.single;
     if (file.size > 20 * 1024 * 1024) {
       throw Exception('El tamaño máximo es 20 MB.');
     }
