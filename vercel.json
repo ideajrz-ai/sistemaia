@@ -1,43 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "services": {
-    "api": {
-      "root": "apps/api",
-      "framework": "express",
-      "bindings": [
-        {
-          "type": "service",
-          "service": "web",
-          "format": "url",
-          "env": "WEB_URL"
-        }
-      ]
-    },
-    "web": {
-      "root": "apps/web",
-      "framework": "sveltekit-1",
-      "bindings": [
-        {
-          "type": "service",
-          "service": "api",
-          "format": "url",
-          "env": "PUBLIC_API_URL"
-        }
-      ]
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": {
-        "service": "api"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "service": "web"
-      }
-    }
-  ]
+  "buildCommand": "npm run build",
+  "outputDirectory": "apps/web/.svelte-kit/output",
+  "installCommand": "npm install"
 }

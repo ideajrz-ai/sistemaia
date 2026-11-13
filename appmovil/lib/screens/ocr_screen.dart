@@ -1,5 +1,7 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+
+import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
@@ -31,7 +33,7 @@ class _OCRScreenState extends State<OCRScreen> {
         imageQuality: 100,
       );
 
-      if (image != null) {
+      if (image != null && mounted) {
         setState(() {
           _image = File(image.path);
           _isProcessing = true;
@@ -41,13 +43,13 @@ class _OCRScreenState extends State<OCRScreen> {
         await _processImage(File(image.path));
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isProcessing = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -55,14 +57,19 @@ class _OCRScreenState extends State<OCRScreen> {
   Future<void> _processImage(File image) async {
     try {
       final inputImage = InputImage.fromFilePath(image.path);
-      final RecognizedText recognizedText =
-          await textRecognizer.processImage(inputImage);
+      final RecognizedText recognizedText = await textRecognizer.processImage(
+        inputImage,
+      );
 
+      if (!mounted) return;
       setState(() {
-        _recognizedText = recognizedText.text;
+        _recognizedText = recognizedText.text.isEmpty
+            ? 'No se encontró texto en esta imagen.'
+            : recognizedText.text;
         _isProcessing = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isProcessing = false;
         _recognizedText = 'Error al procesar la imagen: $e';
@@ -73,9 +80,7 @@ class _OCRScreenState extends State<OCRScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('OCR - Texto desde foto'),
-      ),
+      appBar: AppBar(title: const Text('OCR - Texto desde foto')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -115,7 +120,9 @@ class _OCRScreenState extends State<OCRScreen> {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => _pickImage(ImageSource.camera),
+                    onPressed: _isProcessing
+                        ? null
+                        : () => _pickImage(ImageSource.camera),
                     icon: const Icon(Icons.camera_alt),
                     label: const Text('Cámara'),
                   ),
@@ -123,7 +130,9 @@ class _OCRScreenState extends State<OCRScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _pickImage(ImageSource.gallery),
+                    onPressed: _isProcessing
+                        ? null
+                        : () => _pickImage(ImageSource.gallery),
                     icon: const Icon(Icons.photo_library),
                     label: const Text('Galería'),
                   ),
@@ -156,10 +165,7 @@ class _OCRScreenState extends State<OCRScreen> {
             if (_recognizedText.isNotEmpty) ...[
               const Text(
                 'Texto reconocido:',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Container(
@@ -169,12 +175,18 @@ class _OCRScreenState extends State<OCRScreen> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Theme.of(context).dividerColor),
                 ),
-                child: Text(
+                child: SelectableText(
                   _recognizedText,
                   style: const TextStyle(fontSize: 14),
                 ),
               ),
               const SizedBox(height: 16),
+              TextButton.icon(
+                onPressed: () =>
+                    Clipboard.setData(ClipboardData(text: _recognizedText)),
+                icon: const Icon(Icons.copy),
+                label: const Text('Copiar texto'),
+              ),
               ElevatedButton.icon(
                 onPressed: () {
                   setState(() {

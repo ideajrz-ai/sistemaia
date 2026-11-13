@@ -96,3 +96,7 @@ Variables de entorno a configurar en cada proyecto (ver `.env.example`):
   Cloud API) para envío real; si no, los recordatorios quedan registrados como
   simulados.
 - **Emails:** configura `SMTP_*` (Resend, SendGrid, Gmail, etc.).
+
+## Aplicación Android
+
+La app Flutter está en `appmovil/`. Incluye acceso con Supabase y módulos conectados a esta API. Consulta [configuración, compilación y firma de la APK](appmovil/README.md).

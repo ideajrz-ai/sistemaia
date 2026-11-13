@@ -1,15 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Permisos para la cámara -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <!-- Permisos para almacenamiento -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <!-- Permisos para internet -->
     <uses-permission android:name="android.permission.INTERNET" />
     
     <application
-        android:label="appmovil"
+        android:label="SistemaIA"
         android:name="${applicationName}"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="false"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

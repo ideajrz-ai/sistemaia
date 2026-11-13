@@ -1,4 +1,4 @@
-package com.example.appmovil
+package mx.sistemaia.consultoria
 
 import io.flutter.embedding.android.FlutterActivity
 
